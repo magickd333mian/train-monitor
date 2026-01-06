@@ -19,21 +19,36 @@ A Python bot that monitors seat availability on Thai Railway (dticket.railway.co
 pip install -r requirements.txt
 ```
 
-### 2. Configure the Bot
+### 2. Configure Environment Variables
 
-Edit `train_monitor.py` and update the configuration section if needed:
+Set the following environment variables:
 
-- `TELEGRAM_BOT_TOKEN` - Your Telegram bot API token
-- `TELEGRAM_CHAT_ID` - Your Telegram user ID
-- `CHECK_INTERVAL_MINUTES` - How often to check (default: 5)
-- `TRAINS` - List of trains to monitor
-- `COOKIES` - Session cookies from your browser
+```bash
+export TELEGRAM_BOT_TOKEN="your-telegram-bot-token"
+export TELEGRAM_CHAT_ID="your-telegram-chat-id"
+export CHECK_INTERVAL_MINUTES="5"  # optional, default is 5
+```
+
+Or create a `.env` file:
+```
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+TELEGRAM_CHAT_ID=your-telegram-chat-id
+CHECK_INTERVAL_MINUTES=5
+```
 
 ### 3. Run the Bot
 
 ```bash
 python train_monitor.py
 ```
+
+### Cloud Deployment (Railway.app)
+
+1. Push code to GitHub
+2. Go to [railway.app](https://railway.app) and deploy from GitHub
+3. Add environment variables in Railway dashboard:
+   - `TELEGRAM_BOT_TOKEN`
+   - `TELEGRAM_CHAT_ID`
 
 ## Important Notes
 

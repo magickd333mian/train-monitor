@@ -7,15 +7,17 @@ Tracks seat availability and sends Telegram notifications when tickets become av
 import requests
 import time
 import schedule
+import os
 from datetime import datetime, timedelta
 from typing import Optional
 import json
 
 # ============ CONFIGURATION ============
 
-TELEGRAM_BOT_TOKEN = "8068705451:AAGWWjaev2gb0thHYWhoXPzJpo7hT3Hv2EY"
-TELEGRAM_CHAT_ID = "252041404"
-CHECK_INTERVAL_MINUTES = 5
+# Load from environment variables (set these in your .env file or hosting platform)
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
+CHECK_INTERVAL_MINUTES = int(os.environ.get("CHECK_INTERVAL_MINUTES", "5"))
 
 # Search parameters - Bangkok to Chiang Mai
 ORIGIN_PROVINCE_ID = "297"   # Bangkok
@@ -291,6 +293,16 @@ def send_startup_message():
 
 def main():
     """Main entry point."""
+    # Validate required environment variables
+    if not TELEGRAM_BOT_TOKEN:
+        print("❌ ERROR: TELEGRAM_BOT_TOKEN environment variable is not set")
+        print("   Set it with: export TELEGRAM_BOT_TOKEN='your-bot-token'")
+        return
+    if not TELEGRAM_CHAT_ID:
+        print("❌ ERROR: TELEGRAM_CHAT_ID environment variable is not set")
+        print("   Set it with: export TELEGRAM_CHAT_ID='your-chat-id'")
+        return
+    
     print("""
     ╔════════════════════════════════════════════════╗
     ║     🚂 Thai Railway Ticket Monitor Bot 🚂      ║
