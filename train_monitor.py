@@ -19,20 +19,26 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 CHECK_INTERVAL_MINUTES = int(os.environ.get("CHECK_INTERVAL_MINUTES", "5"))
 
-# Search parameters - Bangkok to Chiang Mai
-ORIGIN_PROVINCE_ID = "297"   # Bangkok
-DEST_PROVINCE_ID = "1679"    # Chiang Mai
-
-# Trip IDs to monitor
-TRIP_IDS_TO_MONITOR = [
-    "513644",
-    "513614",
-    "513608",
-    "513606",
-    "513646",
-    "513622",
-    "513624",
-    "513642",
+# Trips to monitor - each trip has name, tripId, and route info
+TRIPS_TO_MONITOR = [
+    {
+        "name": "23:38",
+        "tripId": "513851",
+        "provinceStartId": "23",
+        "provinceEndId": "74",
+    },
+    {
+        "name": "21:09",
+        "tripId": "513833",
+        "provinceStartId": "23",
+        "provinceEndId": "74",
+    },
+    {
+        "name": "19-45",
+        "tripId": "513831",
+        "provinceStartId": "23",
+        "provinceEndId": "74",
+    },
 ]
 
 # ============ END CONFIGURATION ============
@@ -133,7 +139,7 @@ def ensure_session() -> bool:
     return True
 
 
-def get_train_coaches(trip_id: str) -> Optional[dict]:
+def get_train_coaches(trip: dict) -> Optional[dict]:
     """Get coach/seat availability for a specific trip."""
     global session
     
@@ -142,9 +148,9 @@ def get_train_coaches(trip_id: str) -> Optional[dict]:
     
     try:
         data = {
-            "tripId": trip_id,
-            "provinceStartId": ORIGIN_PROVINCE_ID,
-            "provinceEndId": DEST_PROVINCE_ID,
+            "tripId": trip["tripId"],
+            "provinceStartId": trip["provinceStartId"],
+            "provinceEndId": trip["provinceEndId"],
         }
         
         resp = session.post(
@@ -213,17 +219,14 @@ def parse_availability(response_data: dict) -> list:
     return available_seats
 
 
-def format_availability_message(trip_id: str, available_seats: list) -> str:
+def format_availability_message(trip_name: str, available_seats: list) -> str:
     """Format notification message."""
     message = f"🚂 <b>TICKETS AVAILABLE!</b>\n\n"
-    message += f"<b>Trip ID: {trip_id}</b>\n\n"
+    message += f"Train: <b>{trip_name}</b>\n\n"
     
     for seat in available_seats:
         message += f"🎫 {seat['coach_type']} (Coach #{seat['coach_no']})\n"
         message += f"   Available: <b>{seat['available_count']}</b> seats\n\n"
-    
-    message += f"🔗 Book: https://dticket.railway.co.th/DTicketPublicWeb/booking/booking\n"
-    message += f"\n⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     
     return message
 
@@ -241,10 +244,11 @@ def check_all_trains():
     
     error_count = 0
     
-    for trip_id in TRIP_IDS_TO_MONITOR:
-        log(f"Trip {trip_id}...")
+    for trip in TRIPS_TO_MONITOR:
+        trip_name = trip["name"]
+        log(f"{trip_name}...")
         
-        response = get_train_coaches(trip_id)
+        response = get_train_coaches(trip)
         
         if response is None:
             error_count += 1
@@ -258,13 +262,13 @@ def check_all_trains():
         available_seats = parse_availability(response)
         total_available = sum(s["available_count"] for s in available_seats)
         
-        prev_available = previous_availability.get(trip_id, 0)
+        prev_available = previous_availability.get(trip_name, 0)
         
         if total_available > 0:
             log(f"   🎉 {total_available} seats available!")
             
             if prev_available == 0:
-                message = format_availability_message(trip_id, available_seats)
+                message = format_availability_message(trip_name, available_seats)
                 send_telegram_notification(message)
             else:
                 log(f"   (already notified)")
@@ -273,7 +277,7 @@ def check_all_trains():
             if prev_available > 0:
                 log(f"   ⚠️ Seats gone (were: {prev_available})")
         
-        previous_availability[trip_id] = total_available
+        previous_availability[trip_name] = total_available
         time.sleep(1)
     
     log("Done.")
@@ -282,9 +286,10 @@ def check_all_trains():
 
 def send_startup_message():
     """Send startup notification."""
+    trip_list = "\n".join([f"  • {t['name']}" for t in TRIPS_TO_MONITOR])
     message = (
         f"🤖 <b>Train Monitor Started</b>\n\n"
-        f"Monitoring {len(TRIP_IDS_TO_MONITOR)} trips\n"
+        f"Monitoring {len(TRIPS_TO_MONITOR)} trips:\n{trip_list}\n\n"
         f"Check interval: {CHECK_INTERVAL_MINUTES} min\n"
         f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
@@ -312,7 +317,7 @@ def main():
     ╚════════════════════════════════════════════════╝
     """, flush=True)
     
-    log(f"Monitoring {len(TRIP_IDS_TO_MONITOR)} trips")
+    log(f"Monitoring {len(TRIPS_TO_MONITOR)} trips")
     log(f"Check interval: {CHECK_INTERVAL_MINUTES} minutes")
     
     # Initialize session

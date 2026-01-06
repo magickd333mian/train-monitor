@@ -42,13 +42,56 @@ CHECK_INTERVAL_MINUTES=5
 python train_monitor.py
 ```
 
-### Cloud Deployment (Railway.app)
+## 🚀 Deployment to Railway.app
 
-1. Push code to GitHub
-2. Go to [railway.app](https://railway.app) and deploy from GitHub
-3. Add environment variables in Railway dashboard:
-   - `TELEGRAM_BOT_TOKEN`
-   - `TELEGRAM_CHAT_ID`
+### Step 1: Prepare Your Code
+
+1. Make sure all files are committed to Git:
+   ```bash
+   git add .
+   git commit -m "Ready for Railway deployment"
+   ```
+
+2. Push to GitHub (if not already):
+   ```bash
+   git remote add origin <your-github-repo-url>
+   git push -u origin main
+   ```
+
+### Step 2: Deploy to Railway
+
+1. Go to [railway.app](https://railway.app) and sign in
+2. Click **"New Project"**
+3. Select **"Deploy from GitHub repo"**
+4. Choose your repository
+5. Railway will auto-detect it's a Python project
+
+### Step 3: Configure Environment Variables
+
+In Railway dashboard, go to your service → **Variables** tab and add:
+
+- `TELEGRAM_BOT_TOKEN` = `8068705451:AAGWWjaev2gb0thHYWhoXPzJpo7hT3Hv2EY`
+- `TELEGRAM_CHAT_ID` = `252041404`
+- `CHECK_INTERVAL_MINUTES` = `5` (optional, default is 5)
+
+### Step 4: Deploy
+
+Railway will automatically:
+- Install dependencies from `requirements.txt`
+- Run the bot using the `Procfile`
+- Keep it running 24/7
+
+### Step 5: Monitor
+
+- View logs in Railway dashboard → **Deployments** → Click on deployment → **View Logs**
+- The bot will send a startup notification to Telegram when it starts
+
+### Notes
+
+- The bot runs continuously on Railway
+- No need for `nohup` or background processes - Railway handles it
+- Railway auto-restarts the bot if it crashes
+- Free tier includes 500 hours/month (enough for 24/7 operation)
 
 ## Important Notes
 
