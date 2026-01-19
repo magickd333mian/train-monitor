@@ -19,25 +19,31 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 CHECK_INTERVAL_MINUTES = int(os.environ.get("CHECK_INTERVAL_MINUTES", "5"))
 
-# Trips to monitor - each trip has name, tripId, and route info
+# Search name for notifications
+SEARCH_NAME = "Ayutthaya >>> Chiang Mai ::: 07 of JAN, 2026"
+
+# Trips to monitor - each trip has name, tripId, route info, and viewStateHolder
 TRIPS_TO_MONITOR = [
     {
-        "name": "23:38",
-        "tripId": "513851",
-        "provinceStartId": "23",
-        "provinceEndId": "74",
+        "name": "Trip 1",
+        "tripId": "517922",
+        "provinceStartId": "74",
+        "provinceEndId": "1679",
+        "viewStateHolder": "w4SUgSWiev0jy3Xr6SU7czt9sCn_UIL5RMPBt9HmgUkor9E9u2fcf_urf0P2HwGTWxLu6_9vT6vMBB-ea4Uc9k4QcU18ZanCjDjhf-rrDw65pfRX22SiM-W216-z4EvLiHKVqm77x58BNtFqoqiYV_KZ4zPE-wiAhEg6MxbZiZhVjdo4032swLT0JeCFpWNhogUSTjuZBsL2fXqLOROPmXx76Lk2uus6sCi0gxC4YOJPijlUjtfoBC0bMOzNyh5HQXQh7qP3NpHjPF5gf4cHl8ZXzDhb-bLRiLxo-ctRbamcZpRncHiJ7SGxHHfZIKy8WuaJENBVdgWxCklySEoxf5HUq-nmlxErx5uxkw==",
     },
     {
-        "name": "21:09",
-        "tripId": "513833",
-        "provinceStartId": "23",
-        "provinceEndId": "74",
+        "name": "Trip 2",
+        "tripId": "517904",
+        "provinceStartId": "74",
+        "provinceEndId": "1679",
+        "viewStateHolder": "eQU5UiN8yjmtssSaFnJ8csu2Ei-sGJLGEPLk1N26PF3IZAD-qL5vRSKLu1MZ2dG2dkw0zxhEZUvgADLjYKZI11ouCx0F1glWYLVfK0cs4m0__ioRRnWz9_0fmZDhvO1Blvl2a2EZahrZ4_aMNHgzBrKWRrhHlQQ_BHsvXKXRP47k-QYsVphldkqF0SKWzF8L5J-bpkfsmgo2IBOo1ZsmrmJ7xH55KPMZAqS2lJw6QfMn70SRe3X2mFp8mzYFDpXubG2cCKp7xABNRT_h2MoOGhgrrKvxrWDUQ47T7yaGzdMWAYqqVz2fYrPRbkCOxOEBd-gR2ZiaCYOk69PFoSby2PDL1xrAuHeaxIPf5A==",
     },
     {
-        "name": "19-45",
-        "tripId": "513831",
-        "provinceStartId": "23",
-        "provinceEndId": "74",
+        "name": "Trip 3",
+        "tripId": "517902",
+        "provinceStartId": "74",
+        "provinceEndId": "1679",
+        "viewStateHolder": "hc1EWN1fUQy1qp5DPq2s5uV2w3HBm9lCmbLbQZCFDENLqRZFA1bnutGxZxUNpmVbG3v1F0OXC-syMrm2gEWEkYl0OVQiPPO4J0UYGsejUnt8A2B8Q94DzE-yw0lgwaY-Vu2_UgnSwKVvygbXLSdgv-N7IVDU_7yZm0Sk4irvxp4_DVT0kXqoH5qhfZgX35F0F32cq9c_PkI-0jtNnXTrIZfyj9Q3SdI3BDVxtHQrojnkBeURNf9E8qHKRxMCMR15cnnltwPyatNBxvLFHooOpGsDHqcFUXSWAPYwI9i1KN4gIuEE65Q-HPzmKTPRZO1clpZok_yC4sgroyG0Bu_l76JcKLhIoCxlqIxPiQ==",
     },
 ]
 
@@ -51,12 +57,19 @@ GET_COACH_URL = f"{BASE_URL}/booking/booking/getTrainCoach"
 # Headers for AJAX requests
 AJAX_HEADERS = {
     "Accept": "*/*",
-    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Language": "en-US,en;q=0.9,ru;q=0.8,uk;q=0.7",
+    "Connection": "keep-alive",
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
     "Origin": "https://dticket.railway.co.th",
     "Referer": f"{BASE_URL}/booking/booking",
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-origin",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
     "X-Requested-With": "XMLHttpRequest",
+    "sec-ch-ua": '"Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"macOS"',
 }
 
 # Global state
@@ -102,16 +115,30 @@ def create_session() -> bool:
     try:
         session = requests.Session()
         session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-            "Accept-Language": "en-US,en;q=0.9",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9,ru;q=0.8,uk;q=0.7",
         })
         
         # Visit home page to get session cookies
         resp = session.get(HOME_URL, allow_redirects=True, timeout=30)
         
         if resp.status_code == 200:
-            # Set language preference
+            # Set cookies from cURL command
+            session.cookies.set("JSESSIONID", "node0fyuli80i184di6c00qfl0vgh14653051.node0")
+            session.cookies.set("DTicketPublicSessionId", "w-G3202zJgsLmSuiYEACZJsbsewqelciK_DJOKs58mI")
+            session.cookies.set("DTicketPublicUserName", "DTicketPublicWeb")
+            session.cookies.set("accessType", "4")
             session.cookies.set("lang", "en")
+            session.cookies.set("TS0190b5aa", "01071ea79e6a61529dbc3c21057473d323f8dd4409efb31ba68dcd8feea09d72fb74d5a5551def40966be43f3c7e3b374e1492b8d36eeb055b9ea43493aa13d1de92600506233963dc61a7acd15c8dc9739b6fecb17c8bbcf896a9d1bb3d8c666ea37b8df999cdcee07cfbb748800bb0bfd4cd3f60188d1d8c7d13fbf77858387a0aecd26d107f6443c109080236d82cd56de3e99ff04492b56aa586739d180133ba4317e3")
+            session.cookies.set("dticket", "352456876.37151.0000")
+            session.cookies.set("TS0185f5ba", "01071ea79e340aacb8a982aa6beff835b0350f1ec3efb31ba68dcd8feea09d72fb74d5a5551def40966be43f3c7e3b374e1492b8d357767d7f258a5f039c4ba4ae9f598c54")
+            session.cookies.set("ccmp_uuid", "cf7dde85-eb57-494f-9835-5155ddb1c679")
+            session.cookies.set("ccmp_strictly_setting", "true")
+            session.cookies.set("ccmp_functional_setting", "true")
+            session.cookies.set("ccmp_analytics_setting", "true")
+            session.cookies.set("ccmp_advertising_setting", "true")
+            session.cookies.set("TS7d2cd1d6027", "0883a5da20ab2000fdccdf4685ed2b514f814a79b539d6d159a675a04de543f94fed11a4c898bdae08165c74e9113000594a9b82240cc97fa294d777c28bacdf35d77ca2d87d8fac2b327edfadfa59bbce3c634aa1ceb69822e9660cac1f0122")
+            
             last_session_time = datetime.now()
             log(f"✅ Session created (cookies: {len(session.cookies)})")
             return True
@@ -151,6 +178,7 @@ def get_train_coaches(trip: dict) -> Optional[dict]:
             "tripId": trip["tripId"],
             "provinceStartId": trip["provinceStartId"],
             "provinceEndId": trip["provinceEndId"],
+            "viewStateHolder": trip["viewStateHolder"],
         }
         
         resp = session.post(
@@ -222,6 +250,7 @@ def parse_availability(response_data: dict) -> list:
 def format_availability_message(trip_name: str, available_seats: list) -> str:
     """Format notification message."""
     message = f"🚂 <b>TICKETS AVAILABLE!</b>\n\n"
+    message += f"<b>{SEARCH_NAME}</b>\n"
     message += f"Train: <b>{trip_name}</b>\n\n"
     
     for seat in available_seats:
@@ -289,6 +318,7 @@ def send_startup_message():
     trip_list = "\n".join([f"  • {t['name']}" for t in TRIPS_TO_MONITOR])
     message = (
         f"🤖 <b>Train Monitor Started</b>\n\n"
+        f"<b>{SEARCH_NAME}</b>\n\n"
         f"Monitoring {len(TRIPS_TO_MONITOR)} trips:\n{trip_list}\n\n"
         f"Check interval: {CHECK_INTERVAL_MINUTES} min\n"
         f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
